@@ -1,449 +1,291 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const path = require('path');
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
+// الصفحة الرئيسية
 app.get('/', (req, res) => {
-    const htmlPage = `
-    <!DOCTYPE html>
-    <html lang="ar" dir="rtl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>حفظ وتسميع وتصحيح القرآن الكريم</title>
-        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
-        <style>
-            :root { --primary-color: #0d5c3f; --accent-color: #d9534f; --gold-color: #d4af37; --bg-color: #f4f7f4; }
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            body { font-family: 'Cairo', sans-serif; background-color: var(--bg-color); color: #333; line-height: 1.6; }
-            
-            .header { background: linear-gradient(135deg, var(--primary-color), #083b28); color: white; text-align: center; padding: 1rem; }
-            .header h1 { font-size: 1.6rem; margin-bottom: 0.2rem; }
+  res.send(`
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تصحيح وحفظ القرآن الكريم</title>
+  <style>
+    /* منع تحديد النصوص في المصحف */
+    * {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
 
-            .main-layout { display: flex; max-width: 1200px; margin: 15px auto; gap: 15px; padding: 0 10px; }
-            
-            .sidebar { width: 260px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); height: fit-content; }
-            .sidebar h3 { font-size: 1rem; color: var(--primary-color); margin-bottom: 12px; border-bottom: 2px solid var(--bg-color); padding-bottom: 5px; }
-            .tab-btn { display: block; width: 100%; padding: 12px; margin-bottom: 8px; text-align: right; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
-            .tab-btn:hover, .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
 
-            .content-area { flex: 1; display: flex; flex-direction: column; gap: 15px; }
-            .panel { display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-            .panel.active { display: block; }
+    .header {
+      background: linear-gradient(135deg, #0d5c3a, #063822);
+      color: white;
+      text-align: center;
+      padding: 25px 15px;
+    }
 
-            .controls-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; align-items: center; background: #f9f9f9; padding: 12px; border-radius: 8px; }
-            .control-group { flex: 1; min-width: 140px; }
-            .control-group label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 3px; }
-            select, button { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: 'Cairo', sans-serif; font-size: 0.9rem; }
-            
-            .btn-primary { background: var(--primary-color); color: white; border: none; font-weight: bold; cursor: pointer; }
-            .btn-stop-audio { background: #6c757d; color: white; border: none; font-weight: bold; cursor: pointer; }
-            .btn-rec { background: var(--accent-color); color: white; border: none; font-weight: bold; cursor: pointer; }
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+    }
 
-            .quran-text { font-family: 'Amiri', serif; font-size: 1.7rem; line-height: 2.3; text-align: justify; min-height: 350px; padding: 15px; background: #fffdf9; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; }
-            .page-navigation { display: flex; justify-content: space-between; align-items: center; background: #f4f7f4; padding: 8px 15px; border-radius: 6px; font-weight: bold; }
-            .page-btn { width: auto; padding: 6px 15px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .header p {
+      margin-top: 8px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
 
-            .live-speech { min-height: 70px; padding: 12px; background: #f9f9f9; border-radius: 6px; margin: 10px 0; font-size: 1.2rem; border: 1px dashed #ccc; }
-            .word-correct { color: green; font-weight: bold; }
-            .word-error { color: red; text-decoration: underline; background-color: #ffe6e6; padding: 0 4px; border-radius: 3px; font-weight: bold; }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
 
-            @media (max-width: 768px) {
-                .main-layout { flex-direction: column; }
-                .sidebar { width: 100%; }
-                .quran-text { font-size: 1.4rem; }
-            }
-        </style>
-    </head>
-    <body>
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
 
-        <header class="header">
-            <h1>حفظ وتسميع وتصحيح القرآن الكريم</h1>
-            <p style="font-size: 0.85rem; opacity: 0.9;">منصة متكاملة لقراءة وتسميع القرآن الكريم مع التصحيح</p>
-        </header>
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      background-color: #0d5c3a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+    }
 
-        <div class="main-layout">
-            <div class="sidebar">
-                <h3>📌 اختر وضع الاستخدام:</h3>
-                <button class="tab-btn active" onclick="switchTab(0)">📖 1. قراءة واستماع المصحف</button>
-                <button class="tab-btn" onclick="switchTab(1)">🎙️ 2. التسميع والتصحيح الفوري</button>
-                <button class="tab-btn" onclick="switchTab(2)">🎧 3. الاستماع للتلاوة الكاملة</button>
-            </div>
+    .btn-secondary {
+      background-color: #d4a373;
+    }
 
-            <div class="content-area">
-                
-                <!-- الوضع الأول: قراءة واستماع المصحف -->
-                <div id="panel-0" class="panel active">
-                    <h2 style="color: var(--primary-color); margin-bottom: 10px; font-size: 1.2rem;">📖 تصفح وقراءة المصحف الشريف</h2>
-                    <div class="controls-row">
-                        <div class="control-group">
-                            <label>اختر السورة:</label>
-                            <select id="surah-select-1" onchange="changeSurah()"></select>
-                        </div>
-                        <div class="control-group">
-                            <label>اختر القارئ:</label>
-                            <select id="reciter-select-1">
-                                <option value="ar.alafasy">مشاري العفاسي</option>
-                                <option value="ar.sudais">عبد الرحمن السديس</option>
-                                <option value="ar.husary">محمود خليل الحصري</option>
-                            </select>
-                        </div>
-                        <div class="control-group" style="display: flex; gap: 5px; flex: 1;">
-                            <label>&nbsp;</label>
-                            <button class="btn-primary" onclick="playFullSurah()">🔊 تشغيل</button>
-                            <button class="btn-stop-audio" onclick="stopEverything()">⏹️ إيقاف</button>
-                        </div>
-                    </div>
-                    
-                    <div id="quran-page-display" class="quran-text">جاري تحميل الصفحة...</div>
-                    
-                    <div class="page-navigation">
-                        <button class="page-btn" onclick="prevPage()">◀ الصفحة السابقة</button>
-                        <span id="page-indicator">الصفحة 1</span>
-                        <button class="page-btn" onclick="nextPage()">الصفحة التالية ▶</button>
-                    </div>
-                </div>
+    .btn-danger {
+      background-color: #e63946;
+    }
 
-                <!-- الوضع الثاني: التسميع والتصحيح الفوري (بدون زر إيقاف منفصل وأزرار تبديل) -->
-                <div id="panel-1" class="panel">
-                    <h2 style="color: var(--primary-color); margin-bottom: 10px; font-size: 1.2rem;">🎙️ التسميع والتصحيح الفوري</h2>
-                    <div class="controls-row">
-                        <div class="control-group">
-                            <label>اختر السورة للتسميع:</label>
-                            <select id="surah-select-2" onchange="loadSurahTextForRecitation()"></select>
-                        </div>
-                        <div class="control-group">
-                            <label>قارئ التصحيح:</label>
-                            <select id="reciter-select-2">
-                                <option value="ar.alafasy">مشاري العفاسي</option>
-                                <option value="ar.sudais">عبد الرحمن السديس</option>
-                                <option value="ar.husary">محمود خليل الحصري</option>
-                            </select>
-                        </div>
-                    </div>
+    .quran-display {
+      font-family: 'Amiri', 'Traditional Arabic', serif;
+      font-size: 24px;
+      line-height: 2.2;
+      text-align: justify;
+      border: 1px solid #e0e0e0;
+      padding: 20px;
+      border-radius: 8px;
+      background-color: #fffdf9;
+    }
 
-                    <div style="background: #fffdf9; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 15px;">
-                        <h4 style="margin-bottom: 8px; font-size: 1rem; color: var(--primary-color);">آيات السورة المراد تسميعها:</h4>
-                        <div id="quran-recite-display" style="font-family: 'Amiri', serif; font-size: 1.4rem; max-height: 180px; overflow-y: auto;"></div>
-                    </div>
+    /* تنسيق الكلمات الخاطئة والمصحيحة برسم المصحف */
+    .word-error {
+      color: #d90429 !important;
+      background-color: #ffccd5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
 
-                    <div style="display:flex; gap:10px; align-items: center;">
-                        <button id="start-btn" class="btn-rec" onclick="toggleRecitation()">🔴 بدء التسميع الصوتي</button>
-                        <button id="audio-toggle-btn" class="btn-primary" onclick="toggleCorrectionAudio()" style="background: var(--gold-color);">🔊 استماع للآية من الشيخ</button>
-                    </div>
+    .word-correct {
+      color: #2b9348;
+    }
 
-                    <div style="margin-top:15px;">
-                        <label style="font-size:0.9rem; font-weight:bold;">ما تم التقاطه وتصحيحه:</label>
-                        <div id="live-speech" class="live-speech">في انتظار بدء التسميع...</div>
-                    </div>
-                </div>
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
 
-                <!-- الوضع الثالث: الاستماع للتلاوة الكاملة -->
-                <div id="panel-2" class="panel">
-                    <h2 style="color: var(--primary-color); margin-bottom: 10px; font-size: 1.2rem;">🎧 مشغل تلاوات القرآن الكريم</h2>
-                    <div class="controls-row">
-                        <div class="control-group">
-                            <label>اختر السورة:</label>
-                            <select id="surah-select-3"></select>
-                        </div>
-                        <div class="control-group">
-                            <label>اختر الشيخ:</label>
-                            <select id="reciter-select-3">
-                                <option value="ar.alafasy">مشاري العفاسي</option>
-                                <option value="ar.sudais">عبد الرحمن السديس</option>
-                                <option value="ar.husary">محمود خليل الحصري</option>
-                            </select>
-                        </div>
-                        <div class="control-group" style="flex:0.5;">
-                            <label>&nbsp;</label>
-                            <button class="btn-primary" onclick="playAudioDirect()">تشغيل مباشر</button>
-                        </div>
-                    </div>
-                    <div style="text-align: center; padding: 20px;">
-                        <audio id="audio-player" controls style="width: 100%; margin-top: 15px;"></audio>
-                    </div>
-                </div>
+  <div class="header">
+    <h1>تصحيح وحفظ القرآن الكريم</h1>
+    <p>منصة متكاملة لقراءة وتصحيح القرآن الكريم مع التصحيح</p>
+  </div>
 
-            </div>
-        </div>
+  <div class="container">
+    <div class="card">
+      <h3>📌 اختر وضع الاستخدام:</h3>
+      <button class="btn" onclick="switchTab('read')">📖 1. قراءة واستماع المصحف</button>
+      <button class="btn btn-secondary" onclick="switchTab('recite')">🎙️ 2. التسميع والتصحيح الفوري</button>
+    </div>
 
-        <script>
-            let allAyahs = [];
-            let currentPage = 0;
-            const ayahsPerPage = 10;
-            let currentAyahsText = [];
-            let recognition;
-            let isReciting = false;
-            let globalAudio = new Audio();
+    <!-- قسم القراءة والاستماع -->
+    <div id="read-tab" class="card">
+      <h3>📖 تصفح وقراءة المصحف الشريف</h3>
+      
+      <label>اختر السورة:</label>
+      <select id="surah-select" onchange="loadSurahPages()">
+        <option value="1">1. سورة الفاتحة</option>
+        <option value="3">3. سورة آل عمران</option>
+      </select>
 
-            function switchTab(index) {
-                stopEverything();
-                document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
-                    btn.classList.toggle('active', idx === index);
-                });
-                document.querySelectorAll('.panel').forEach((panel, idx) => {
-                    panel.classList.toggle('active', idx === index);
-                });
-            }
+      <label>اختر القارئ:</label>
+      <select id="reciter-select">
+        <option value="ar.alafasy">مشاري العفاسي</option>
+        <option value="ar.husary">محمود خليل الحصري</option>
+      </select>
 
-            async function init() {
-                try {
-                    const res = await fetch('https://api.alquran.cloud/v1/surah');
-                    const data = await res.json();
-                    if(data.code === 200) {
-                        const optionsHtml = data.data.map(s => '<option value="' + s.number + '">' + s.number + '. ' + s.name + '</option>').join('');
-                        document.getElementById('surah-select-1').innerHTML = optionsHtml;
-                        document.getElementById('surah-select-2').innerHTML = optionsHtml;
-                        document.getElementById('surah-select-3').innerHTML = optionsHtml;
-                        loadSurahPages();
-                        loadSurahTextForRecitation();
-                    }
-                } catch(e) { console.log("خطأ في التحميل"); }
-            }
+      <div id="quran-text" class="quran-display">
+        <!-- يتم تحميل الآيات هنا -->
+      </div>
 
-            async function loadSurahPages() {
-                const sNum = document.getElementById('surah-select-1').value || 1;
-                currentPage = 0;
-                try {
-                    const res = await fetch('https://api.alquran.cloud/v1/surah/' + sNum);
-                    const data = await res.json();
-                    if(data.code === 200) {
-                        allAyahs = data.data.ayahs;
-                        renderPage();
-                    }
-                } catch(e) { document.getElementById('quran-page-display').innerHTML = "تعذر تحميل المصحف."; }
-            }
+      <div style="margin-top: 15px; display: flex; gap: 10px;">
+        <button class="btn" onclick="playCurrentPageAudio()">▶️ استماع من الصفحة الحالية</button>
+        <button class="btn btn-secondary" onclick="stopAudio()">⏹️ إيقاف</button>
+      </div>
+      <audio id="audio-player" style="display:none;"></audio>
+    </div>
 
-            function changeSurah() {
-                loadSurahPages();
-            }
+    <!-- قسم التسميع والتصحيح الصوتي -->
+    <div id="recite-tab" class="card" style="display:none;">
+      <h3>🎙️ اختر السورة للتسميع:</h3>
+      <select id="recite-surah-select">
+        <option value="1">1. سورة الفاتحة</option>
+      </select>
 
-            function renderPage() {
-                const display = document.getElementById('quran-page-display');
-                const start = currentPage * ayahsPerPage;
-                const end = start + ayahsPerPage;
-                const pageAyahs = allAyahs.slice(start, end);
+      <div id="recite-verses" class="quran-display" style="margin-bottom: 15px;">
+        بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ (1) ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ (2) ٱلرَّحْمَٰنِ ٱلرَّحِيمِ (3) مَٰلِكِ يَوْمِ ٱلدِّينِ (4) إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ (5) ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ (6) صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ
+      </div>
 
-                if(pageAyahs.length === 0) {
-                    currentPage = 0;
-                    renderPage();
-                    return;
-                }
+      <button id="start-recite-btn" class="btn btn-danger" onclick="toggleRecitation()">🔴 بدء التسميع الصوتي</button>
 
-                let html = '';
-                pageAyahs.forEach((a) => {
-                    let text = a.text;
-                    if (a.numberInSurah === 1 && a.number !== 1 && a.number !== 9) {
-                        text = text.replace('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', '');
-                    }
-                    html += '<span>' + text + ' <b style="color:var(--gold-color);">(' + a.numberInSurah + ')</b> </span>';
-                });
-                display.innerHTML = html;
-                document.getElementById('page-indicator').textContent = 'الصفحة ' + (currentPage + 1) + ' من ' + Math.ceil(allAyahs.length / ayahsPerPage);
-            }
+      <h4>ما تم التقاطه وتصحيحه:</h4>
+      <div id="recitation-result" class="quran-display" style="min-height: 50px;">
+        <!-- نتائج التسميع تظهر هنا -->
+      </div>
+    </div>
+  </div>
 
-            function nextPage() {
-                if((currentPage + 1) * ayahsPerPage < allAyahs.length) {
-                    currentPage++;
-                    renderPage();
-                }
-            }
+  <script>
+    let currentVerses = [];
+    let audioPlayer = document.getElementById('audio-player');
+    let isRecollecting = false;
+    let recognition;
 
-            function prevPage() {
-                if(currentPage > 0) {
-                    currentPage--;
-                    renderPage();
-                }
-            }
+    // التنقل بين الأقسام
+    function switchTab(tab) {
+      document.getElementById('read-tab').style.display = tab === 'read' ? 'block' : 'none';
+      document.getElementById('recite-tab').style.display = tab === 'recite' ? 'block' : 'none';
+    }
 
-            async function loadSurahTextForRecitation() {
-                const sNum = document.getElementById('surah-select-2').value || 1;
-                const display = document.getElementById('quran-recite-display');
-                try {
-                    const res = await fetch('https://api.alquran.cloud/v1/surah/' + sNum);
-                    const data = await res.json();
-                    if(data.code === 200) {
-                        currentAyahsText = data.data.ayahs.map(a => cleanText(a.text));
-                        let html = '';
-                        data.data.ayahs.forEach((a) => {
-                            html += '<span>' + a.text + ' <b>(' + a.numberInSurah + ')</b> </span>';
-                        });
-                        display.innerHTML = html;
-                    }
-                } catch(e) { display.innerHTML = "خطأ في التحميل."; }
-            }
+    // 1. تشغيل الصوت بدءاً من أول آية في الصفحة/السورة المعروضة حالياً
+    function playCurrentPageAudio() {
+      const reciter = document.getElementById('reciter-select').value;
+      const surah = document.getElementById('surah-select').value;
+      
+      // جلب ملف الصوت لبداية الصفحة الحالية
+      const audioUrl = \`https://cdn.islamic.network/quran/audio/128/\${reciter}/1.mp3\`; 
+      audioPlayer.src = audioUrl;
+      audioPlayer.play();
+    }
 
-            function cleanText(text) {
-                return text.replace(/[\\u064B-\\u0652]/g, "").replace(/[أإآ]/g, "ا").replace(/ة/g, "ه");
-            }
+    function stopAudio() {
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
+    }
 
-            // دالة الإيقاف الشاملة لإعادة الأزرار لحالتها الافتراضية وإيقاف التسجيل أو الصوت
-            function stopEverything() {
-                if(recognition && isReciting) {
-                    try { recognition.stop(); } catch(e) {}
-                }
-                isReciting = false;
+    // 2. خوارزمية التسميع الصوتي وتنقية النصوص للمقارنة
+    function normalizeText(text) {
+      return text
+        .replace(/[\u064B-\u065F\u0670]/g, '') // إزالة التشكيل للمقارنة فقط
+        .replace(/[أإآٱ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[^\w\sء-ي]/g, '')
+        .trim();
+    }
 
-                globalAudio.pause();
-                globalAudio.currentTime = 0;
+    function toggleRecitation() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('المتصفح لا يدعم التعرف على الصوت، يرجى استخدام متصفح Chrome.');
+        return;
+      }
 
-                const audioPlayer = document.getElementById('audio-player');
-                if(audioPlayer) {
-                    audioPlayer.pause();
-                    audioPlayer.currentTime = 0;
-                }
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (!isRecollecting) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'ar-SA';
+        recognition.continuous = true;
+        recognition.interimResults = true;
 
-                // إعادة ضبط شكل ونصوص أزرار التسميع والاستماع
-                const startBtn = document.getElementById('start-btn');
-                if(startBtn) {
-                    startBtn.textContent = "🔴 بدء التسميع الصوتي";
-                    startBtn.style.background = "var(--accent-color)";
-                }
+        recognition.onstart = () => {
+          isRecollecting = true;
+          document.getElementById('start-recite-btn').innerText = '⏹️ إيقاف التسميع';
+        };
 
-                const audioBtn = document.getElementById('audio-toggle-btn');
-                if(audioBtn) {
-                    audioBtn.textContent = "🔊 استماع للآية من الشيخ";
-                    audioBtn.style.background = "var(--gold-color)";
-                }
-            }
+        recognition.onresult = (event) => {
+          let spokenText = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            spokenText += event.results[i][0].transcript;
+          }
+          compareAndDisplay(spokenText);
+        };
 
-            // خاصية زر التسميع كـ Toggle (يبدأ أو يوقف عند الضغط)
-            function toggleRecitation() {
-                if (!isReciting) {
-                    stopEverything(); // إيقاف أي صوت شيخ يعمل حالياً
-                    isReciting = true;
-                    document.getElementById('live-speech').textContent = "جاري الاستماع لتلاوتك... (تحدث الآن)";
-                    try {
-                        recognition.start();
-                    } catch(e) {}
-                    
-                    const startBtn = document.getElementById('start-btn');
-                    startBtn.textContent = "⏹️ إيقاف التسجيل";
-                    startBtn.style.background = "#6c757d";
-                } else {
-                    stopEverything(); // الضغط مرة أخرى يوقف التسجيل
-                }
-            }
+        recognition.start();
+      } else {
+        recognition.stop();
+        isRecollecting = false;
+        document.getElementById('start-recite-btn').innerText = '🔴 بدء التسميع الصوتي';
+      }
+    }
 
-            // خاصية زر الاستماع لصوت الشيخ كـ Toggle (يبدأ أو يوقف عند الضغط)
-            function toggleCorrectionAudio() {
-                if (globalAudio.paused) {
-                    stopEverything(); // إيقاف أي تسجيل يعمل حالياً
-                    const sNum = String(document.getElementById('surah-select-2').value || 1).padStart(3, '0');
-                    const reciter = document.getElementById('reciter-select-2').value;
-                    playAudioUrl(sNum, reciter);
-                    
-                    const audioBtn = document.getElementById('audio-toggle-btn');
-                    audioBtn.textContent = "⏹️ إيقاف صوت الشيخ";
-                    audioBtn.style.background = "#6c757d";
-                } else {
-                    stopEverything(); // الضغط مرة أخرى يوقف الصوت
-                }
-            }
+    // مقارنة النص وعرض الكلمة بالتشكيل الأصلي مع تلوين الخطأ
+    function compareAndDisplay(spokenText) {
+      const originalText = document.getElementById('recite-verses').innerText;
+      const originalWords = originalText.split(/\s+/);
+      const spokenWords = normalizeText(spokenText).split(/\s+/);
 
-            function playFullSurah() {
-                stopEverything();
-                const sNum = String(document.getElementById('surah-select-1').value || 1).padStart(3, '0');
-                const reciter = document.getElementById('reciter-select-1').value;
-                playAudioUrl(sNum, reciter);
-            }
+      let resultHtml = '';
 
-            function playAudioDirect() {
-                stopEverything();
-                const sNum = String(document.getElementById('surah-select-3').value || 1).padStart(3, '0');
-                const reciter = document.getElementById('reciter-select-3').value;
-                const audioPlayer = document.getElementById('audio-player');
-                let server = 'server8.mp3quran.net/afs';
-                if(reciter === 'ar.sudais') server = 'server11.mp3quran.net/sds';
-                if(reciter === 'ar.husary') server = 'server13.mp3quran.net/husr';
-                audioPlayer.src = 'https://' + server + '/' + sNum + '.mp3';
-                audioPlayer.play();
-            }
+      originalWords.forEach((originalWordWithTashkeel, index) => {
+        const cleanOriginal = normalizeText(originalWordWithTashkeel);
+        const cleanSpoken = spokenWords[index] || '';
 
-            function playAudioUrl(sNum, reciter) {
-                let server = 'server8.mp3quran.net/afs';
-                if(reciter === 'ar.sudais') server = 'server11.mp3quran.net/sds';
-                if(reciter === 'ar.husary') server = 'server13.mp3quran.net/husr';
-                globalAudio.src = 'https://' + server + '/' + sNum + '.mp3';
-                globalAudio.play();
-                
-                globalAudio.onended = () => {
-                    const audioBtn = document.getElementById('audio-toggle-btn');
-                    if(audioBtn) {
-                        audioBtn.textContent = "🔊 استماع للآية من الشيخ";
-                        audioBtn.style.background = "var(--gold-color)";
-                    }
-                };
-            }
+        if (cleanSpoken && cleanOriginal !== cleanSpoken) {
+          resultHtml += \`<span class="word-error">\${originalWordWithTashkeel} (خطأ)</span> \`;
+        } else if (cleanSpoken && cleanOriginal === cleanSpoken) {
+          resultHtml += \`<span class="word-correct">\${originalWordWithTashkeel}</span> \`;
+        }
+      });
 
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = true;
-                recognition.lang = 'ar-SA';
-
-                recognition.onresult = (event) => {
-                    let transcript = '';
-                    for (let i = 0; i < event.results.length; i++) {
-                        transcript += event.results[i][0].transcript;
-                    }
-                    document.getElementById('live-speech').textContent = transcript;
-                    checkAndCorrect(transcript);
-                };
-
-                recognition.onerror = (event) => {
-                    document.getElementById('live-speech').textContent = "⚠️ خطأ في محرك الصوت: " + event.error;
-                };
-
-                recognition.onend = () => {
-                    if(isReciting) {
-                        // إعادة التشغيل استمرارية إذا توقف تلقائياً
-                        try { recognition.start(); } catch(e) {}
-                    }
-                };
-            }
-
-            function checkAndCorrect(userText) {
-                const cleanUserWords = cleanText(userText).trim().split(/\\s+/);
-                const fullSurahClean = currentAyahsText.join(" ").split(/\\s+/);
-                let highlightedHtml = "";
-                let hasError = false;
-
-                cleanUserWords.forEach((word) => {
-                    if (fullSurahClean.includes(word)) {
-                        highlightedHtml += '<span class="word-correct">' + word + '</span> ';
-                    } else {
-                        highlightedHtml += '<span class="word-error">' + word + ' (خطأ)</span> ';
-                        hasError = true;
-                    }
-                });
-
-                document.getElementById('live-speech').innerHTML = highlightedHtml;
-
-                if (hasError && isReciting) {
-                    stopEverything(); // إيقاف التسميع تلقائياً عند الخطأ
-                    // تشغيل صوت الشيخ للتصحيح وتحديث الزر
-                    const sNum = String(document.getElementById('surah-select-2').value || 1).padStart(3, '0');
-                    const reciter = document.getElementById('reciter-select-2').value;
-                    playAudioUrl(sNum, reciter);
-                    const audioBtn = document.getElementById('audio-toggle-btn');
-                    if(audioBtn) {
-                        audioBtn.textContent = "⏹️ إيقاف صوت الشيخ";
-                        audioBtn.style.background = "#6c757d";
-                    }
-                }
-            }
-
-            init();
-        </script>
-    </body>
-    </html>
-    `;
-    res.send(htmlPage);
+      document.getElementById('recitation-result').innerHTML = resultHtml || spokenText;
+    }
+  </script>
+</body>
+</html>
+  `);
 });
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 السيرفر يعمل بنجاح على: http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
