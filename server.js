@@ -11,16 +11,16 @@ app.get('/', (req, res) => {
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>تصحيح وحفظ القرآن الكريم</title>
 
-  <!-- خط Amiri لعرض المصحف بشكل مجود وأنيق -->
+  <!-- خط Amiri لعرض رسم المصحف الشريف -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
   <style>
-    /* منع التحديد واللمس المزعج */
+    /* منع تحديد النص باللمس والماوس */
     * {
       -webkit-touch-callout: none;
       -webkit-user-select: none;
@@ -43,50 +43,64 @@ app.get('/', (req, res) => {
       overflow: hidden;
     }
 
-    /* شريط التحكم العلوي */
+    /* شريط التحكم العلوي المتجاوب مع الهاتف */
     .top-bar {
       background: #0d5c3a;
       color: white;
-      padding: 10px 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      z-index: 10;
-    }
-
-    .top-bar select, .top-bar button {
-      font-family: inherit;
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid #084229;
-      background: white;
-      color: #0d5c3a;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .top-bar button {
-      background: #d4a373;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    /* إطار إعدادات القارئ والتحميل */
-    .controls-panel {
-      background: #eef2eb;
-      padding: 8px 15px;
+      padding: 8px 10px;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #dcd6c8;
-      font-size: 14px;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 10;
     }
 
-    /* حاوية المصحف وسحب الصفحات */
+    .select-group {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .top-bar select {
+      font-family: inherit;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #084229;
+      background: white;
+      color: #0d5c3a;
+      font-size: 13px;
+      font-weight: bold;
+      flex: 1;
+    }
+
+    /* لوحة الإرشادات والتحميل */
+    .controls-panel {
+      background: #eef2eb;
+      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #dcd6c8;
+      font-size: 13px;
+    }
+
+    .btn-download {
+      background: #e63946;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    /* منطقة عرض المصحف المصممة للهواتف والشاشات */
     .mushaf-viewport {
       flex: 1;
       display: flex;
@@ -95,41 +109,41 @@ app.get('/', (req, res) => {
       overflow: hidden;
       position: relative;
       touch-action: pan-y;
+      padding: 5px;
     }
 
     .quran-page-card {
       width: 100%;
-      max-width: 500px;
-      height: 96%;
+      max-width: 520px;
+      height: 100%;
       background: #fffdf7;
       border: 1px solid #e2dac9;
       box-shadow: 0 4px 15px rgba(0,0,0,0.06);
       border-radius: 8px;
-      padding: 15px 20px;
+      padding: 12px 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: transform 0.2s ease-out;
       position: relative;
     }
 
-    /* هيدر الصفحة الرسمي (الجزء واسم السورة) */
+    /* هيدر الصفحة الرسمي */
     .page-header {
       display: flex;
       justify-content: space-between;
       border-bottom: 1px solid #e8e1d2;
-      padding-bottom: 6px;
-      font-size: 16px;
+      padding-bottom: 4px;
+      font-size: 14px;
       color: #555;
       font-weight: bold;
     }
 
-    /* نص القرآن والآيات */
+    /* نص الآيات ورسم المصحف */
     .page-body {
       flex: 1;
-      padding: 15px 0;
-      font-size: 23px;
-      line-height: 2.3;
+      padding: 10px 0;
+      font-size: 22px;
+      line-height: 2.2;
       text-align: justify;
       text-justify: inter-word;
       overflow-y: auto;
@@ -137,17 +151,18 @@ app.get('/', (req, res) => {
 
     .basmala {
       text-align: center;
-      font-size: 24px;
-      margin: 10px 0;
+      font-size: 23px;
+      margin: 8px 0;
       color: #0d5c3a;
       display: block;
+      font-weight: bold;
     }
 
-    /* الآية ورقمها */
+    /* الآية والتحديد */
     .verse {
       display: inline;
       cursor: pointer;
-      padding: 2px 4px;
+      padding: 2px 3px;
       border-radius: 4px;
       transition: background-color 0.2s;
     }
@@ -163,99 +178,142 @@ app.get('/', (req, res) => {
 
     .verse-number {
       display: inline-block;
-      width: 28px;
-      height: 28px;
-      line-height: 26px;
+      width: 26px;
+      height: 26px;
+      line-height: 24px;
       text-align: center;
       background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="%230d5c3a" stroke-width="6"/></svg>') no-repeat center center;
       background-size: contain;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: bold;
       color: #0d5c3a;
-      margin: 0 4px;
+      margin: 0 3px;
     }
 
-    /* فوتر الصفحة (رقم الصفحة) */
+    /* فوتر الصفحة */
     .page-footer {
       text-align: center;
       border-top: 1px solid #e8e1d2;
-      padding-top: 6px;
-      font-size: 14px;
+      padding-top: 4px;
+      font-size: 13px;
       color: #777;
     }
 
-    /* مشغل الصوت والتحكم */
+    /* مشغل الصوت السفلي المتجاوب */
     .audio-bar {
       background: #063822;
       color: white;
-      padding: 10px 15px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
     }
 
     .btn-play {
       background: #2b9348;
       color: white;
       border: none;
-      padding: 8px 18px;
-      border-radius: 20px;
+      padding: 6px 14px;
+      border-radius: 16px;
       font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-start {
+      background: #457b9d;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    /* مربع البحث للتسجيلات المختارة */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .recitation-item {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
       cursor: pointer;
     }
 
-    .btn-download {
-      background: #e63946;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 13px;
+    .recitation-item:hover {
+      background: #f4f6f9;
     }
   </style>
 </head>
 <body>
 
-  <!-- شريط اختيار السورة والجزء -->
+  <!-- شريط اختيار السورة والقراء المزدوج -->
   <div class="top-bar">
-    <div>
-      <select id="surah-select" onchange="onSurahChange()">
-        <!-- سيتم ملء 114 سورة تلقائياً -->
-      </select>
-    </div>
-    <div>
-      <select id="reciter-select" onchange="onReciterChange()">
+    <div class="select-group">
+      <select id="surah-select" onchange="onSurahChange()"></select>
+      
+      <!-- القائمة الأولى: مصحف كامل -->
+      <select id="full-reciter-select" onchange="onFullReciterChange()">
         <option value="ar.alafasy">مشاري العفاسي</option>
         <option value="ar.husary">محمود خليل الحصري</option>
         <option value="ar.banna">محمود علي البنا</option>
         <option value="ar.minshawi">محمد صديق المنشاوي (مرتل)</option>
         <option value="ar.minshawimujawwad">محمد صديق المنشاوي (مجود)</option>
-        <option value="ar.basil">باسل مؤنس (تسجيلات مختارة)</option>
-        <option value="ar.kaseb">أحمد كاسب (تسجيلات مختارة)</option>
+      </select>
+    </div>
+
+    <!-- القائمة الثانية: تسجيلات مختارة -->
+    <div style="flex: 1; min-width: 140px;">
+      <select id="partial-reciter-select" onchange="openPartialModal()">
+        <option value="">اختر شيخ (تسجيلات مختارة)...</option>
+        <option value="basil">باسل مؤنس</option>
+        <option value="kaseb">أحمد كاسب</option>
       </select>
     </div>
   </div>
 
-  <!-- خيارات الاستماع والتحميل -->
+  <!-- النص المساعد المعدل وتنزيل السورة -->
   <div class="controls-panel">
-    <span>💡 اسحب الصفحة لليمين/اليسار للتقليب</span>
+    <span>💡 اسحب الصفحة لليمين/اليسار</span>
     <button onclick="downloadCurrentSurahAudio()" class="btn-download">📥 تحميل السورة صوتياً</button>
   </div>
 
-  <!-- عرض الصفحة المصحفية -->
+  <!-- منطقة عرض المصحف -->
   <div class="mushaf-viewport" id="viewport">
-    <div class="quran-page-card" id="quran-card">
+    <div class="quran-page-card">
       <div class="page-header">
         <span id="juz-label">الجزء 1</span>
         <span id="surah-label">سُورةُ البَقَرَةِ</span>
       </div>
 
-      <div class="page-body" id="page-body">
-        <!-- يتم عرض الآيات هنا -->
-      </div>
+      <div class="page-body" id="page-body"></div>
 
       <div class="page-footer">
         <span id="page-number-label">٣</span>
@@ -266,8 +324,18 @@ app.get('/', (req, res) => {
   <!-- شريط التحكم الصوتي السفلي -->
   <div class="audio-bar">
     <button class="btn-play" id="play-btn" onclick="togglePlay()">▶️ تشغيل</button>
-    <span id="audio-status" style="font-size: 13px;">جاهز للتشغيل</span>
-    <button onclick="playFromSurahStart()" style="background:#457b9d; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">⏮️ من أول السورة</button>
+    <span id="audio-status" style="font-size: 12px; flex:1; text-align:center;">بداية الصفحة</span>
+    <button class="btn-start" onclick="playFromSurahStart()">⏮️ من أول السورة</button>
+  </div>
+
+  <!-- نافذة التفتيش واختيار التسجيلات المختارة -->
+  <div class="modal" id="partial-modal">
+    <div class="modal-content">
+      <h3 id="modal-title" style="margin-top:0;">التسجيلات المتاحة</h3>
+      <input type="text" id="search-box" class="search-input" placeholder="بحث عن سورة أو تلاوة..." oninput="filterRecitations()">
+      <div id="recitations-list"></div>
+      <button onclick="closePartialModal()" style="margin-top:10px; width:100%; padding:8px; background:#6c757d; color:white; border:none; border-radius:4px;">إغلاق</button>
+    </div>
   </div>
 
   <audio id="audio-player" style="display:none;"></audio>
@@ -276,12 +344,26 @@ app.get('/', (req, res) => {
     let currentPage = 3;
     let selectedVerseIndex = null;
     let isPlaying = false;
+    let currentSurahNumber = 2;
     let touchStartX = 0;
     let touchEndX = 0;
 
     const audioPlayer = document.getElementById('audio-player');
 
-    // قائمة السور لتغذية الاختيار
+    // قاعدة بيانات التسجيلات المختارة
+    const partialData = {
+      basil: [
+        { title: "سورة الكهف - تلاوة خاشعة", surah: 18, url: "https://server11.mp3quran.net/basil/018.mp3" },
+        { title: "سورة مريم", surah: 19, url: "https://server11.mp3quran.net/basil/019.mp3" },
+        { title: "سورة طه", surah: 20, url: "https://server11.mp3quran.net/basil/020.mp3" }
+      ],
+      kaseb: [
+        { title: "سورة يس - تلاوة مبكية", surah: 36, url: "https://server10.mp3quran.net/kaseb/036.mp3" },
+        { title: "سورة الرحمن", surah: 55, url: "https://server10.mp3quran.net/kaseb/055.mp3" },
+        { title: "سورة الواقعة", surah: 56, url: "https://server10.mp3quran.net/kaseb/056.mp3" }
+      ]
+    };
+
     const surahsList = [
       "الفاتحة", "البقرة", "آل عمران", "النساء", "المائدة", "الأنعام", "الأعراف", "الأنفال", "التوبة", "يونس",
       "هود", "يوسف", "الرعد", "إبراهيم", "الحجر", "النحل", "الإسراء", "الكهف", "مريم", "طه",
@@ -297,7 +379,6 @@ app.get('/', (req, res) => {
       "المسد", "الإخلاص", "الفلق", "الناس"
     ];
 
-    // تهيئة القائمة
     function initSurahSelect() {
       const select = document.getElementById('surah-select');
       select.innerHTML = '';
@@ -309,26 +390,16 @@ app.get('/', (req, res) => {
       });
     }
 
-    // سحب وتمرير الصفحات لليمين واليسار (Swipe)
+    // اتجاه التصفح من اليمين إلى اليسار
     const viewport = document.getElementById('viewport');
-    viewport.addEventListener('touchstart', e => {
-      touchStartX = e.changedTouches[0].screenX;
-    });
-
-    viewport.addEventListener('touchend', e => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    });
+    viewport.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+    viewport.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; handleSwipe(); });
 
     function handleSwipe() {
-      if (touchEndX < touchStartX - 50) {
-        // سحب لليسار -> الصفحة التالية
-        nextPage();
-      }
-      if (touchEndX > touchStartX + 50) {
-        // سحب لليمين -> الصفحة السابقة
-        prevPage();
-      }
+      // السحب لليسار -> الصفحة التالية
+      if (touchEndX < touchStartX - 40) nextPage();
+      // السحب لليمين -> الصفحة السابقة
+      if (touchEndX > touchStartX + 40) prevPage();
     }
 
     function nextPage() {
@@ -345,7 +416,6 @@ app.get('/', (req, res) => {
       }
     }
 
-    // تحميل آيات صفحة معينة من API القرآن الكريم
     async function loadPage(pageNum) {
       document.getElementById('page-body').innerHTML = '<p style="text-align:center;">جاري تحميل الصفحة...</p>';
       selectedVerseIndex = null;
@@ -353,12 +423,9 @@ app.get('/', (req, res) => {
       try {
         const res = await fetch(\`https://api.alquran.cloud/v1/page/\${pageNum}/quran-uthmani\`);
         const data = await res.json();
-        
-        if (data.code === 200) {
-          renderPage(data.data);
-        }
+        if (data.code === 200) renderPage(data.data);
       } catch (err) {
-        document.getElementById('page-body').innerHTML = '<p style="text-align:center; color:red;">تعذر تحميل الصفحة، تحقق من الاتصال.</p>';
+        document.getElementById('page-body').innerHTML = '<p style="text-align:center; color:red;">تعذر تحميل الصفحة.</p>';
       }
     }
 
@@ -369,18 +436,19 @@ app.get('/', (req, res) => {
       document.getElementById('page-number-label').innerText = pageData.number;
       
       if (pageData.ayahs.length > 0) {
+        currentSurahNumber = pageData.ayahs[0].surah.number;
         document.getElementById('surah-label').innerText = 'سُورةُ ' + pageData.ayahs[0].surah.name;
         document.getElementById('juz-label').innerText = 'الجزء ' + pageData.ayahs[0].juz;
-        document.getElementById('surah-select').value = pageData.ayahs[0].surah.number;
+        document.getElementById('surah-select').value = currentSurahNumber;
       }
 
-      // إضافة البسملة مستقلة إذا كانت بداية سورة جديدة في الصفحة (عدا الفاتحة والتوبة)
-      let currentSurahNum = 0;
+      let activeSurahInPage = 0;
 
       pageData.ayahs.forEach((ayah, idx) => {
-        if (ayah.surah.number !== currentSurahNum) {
-          currentSurahNum = ayah.surah.number;
-          if (ayah.numberInSurah === 1 && currentSurahNum !== 1 && currentSurahNum !== 9) {
+        // إضافة البسملة كعنوان فقط واستثنائها نهائياً من سورة التوبة (رقم 9)
+        if (ayah.surah.number !== activeSurahInPage) {
+          activeSurahInPage = ayah.surah.number;
+          if (ayah.numberInSurah === 1 && activeSurahInPage !== 1 && activeSurahInPage !== 9) {
             const basmalaDiv = document.createElement('div');
             basmalaDiv.className = 'basmala';
             basmalaDiv.innerText = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ';
@@ -388,9 +456,9 @@ app.get('/', (req, res) => {
           }
         }
 
-        // تنظيف نص الآية من البسملة المدمجة إذا كانت الآية الأولى
+        // تنقية الآية الأولى من نص البسملة المدمجة لمنع التكرار
         let verseText = ayah.text;
-        if (ayah.numberInSurah === 1 && currentSurahNum !== 1) {
+        if (ayah.numberInSurah === 1 && activeSurahInPage !== 1) {
           verseText = verseText.replace('بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ', '').trim();
         }
 
@@ -398,8 +466,6 @@ app.get('/', (req, res) => {
         span.className = 'verse';
         span.id = \`verse-\${idx}\`;
         span.innerHTML = \`\${verseText} <span class="verse-number">\${ayah.numberInSurah}</span> \`;
-        
-        // عند الضغط لتحديد آية
         span.onclick = () => selectVerse(idx, ayah);
 
         body.appendChild(span);
@@ -413,7 +479,6 @@ app.get('/', (req, res) => {
       document.getElementById('audio-status').innerText = \`تم تحديد الآية \${ayah.numberInSurah}\`;
     }
 
-    // التشغيل والاستماع
     function togglePlay() {
       if (isPlaying) {
         audioPlayer.pause();
@@ -425,20 +490,21 @@ app.get('/', (req, res) => {
       }
     }
 
-    function playAudio() {
-      const reciter = document.getElementById('reciter-select').value;
-      const surahNum = document.getElementById('surah-select').value;
-      
-      // رابط التلاوة حسب السورة والقارئ
-      const audioUrl = \`https://cdn.islamic.network/quran/audio-surah/128/\${reciter}/\${surahNum}.mp3\`;
-      
+    function playAudio(customUrl) {
+      let audioUrl = customUrl;
+
+      if (!audioUrl) {
+        const reciter = document.getElementById('full-reciter-select').value;
+        audioUrl = \`https://cdn.islamic.network/quran/audio-surah/128/\${reciter}/\${currentSurahNumber}.mp3\`;
+      }
+
       audioPlayer.src = audioUrl;
       audioPlayer.play().then(() => {
         isPlaying = true;
         document.getElementById('play-btn').innerText = '⏸️ إيقاف مؤقت';
         document.getElementById('audio-status').innerText = 'جاري التشغيل...';
       }).catch(err => {
-        alert('التلاوة الصوتية غير متوفرة لهذا القارئ حالياً.');
+        alert('التلاوة غير متوفرة لهذا القارئ حالياً.');
       });
     }
 
@@ -450,7 +516,6 @@ app.get('/', (req, res) => {
 
     function onSurahChange() {
       const surahNum = document.getElementById('surah-select').value;
-      // جلب رقم الصفحة الأولى لهذه السورة
       fetch(\`https://api.alquran.cloud/v1/surah/\${surahNum}\`)
         .then(res => res.json())
         .then(data => {
@@ -461,28 +526,63 @@ app.get('/', (req, res) => {
         });
     }
 
-    function onReciterChange() {
-      if (isPlaying) {
-        playAudio();
-      }
+    function onFullReciterChange() {
+      document.getElementById('partial-reciter-select').value = "";
+      if (isPlaying) playAudio();
     }
 
-    // تحميل السورة صوتياً على الهاتف
+    // إدارة التسجيلات المختارة
+    function openPartialModal() {
+      const reciterKey = document.getElementById('partial-reciter-select').value;
+      if (!reciterKey) return;
+
+      const modal = document.getElementById('partial-modal');
+      const listContainer = document.getElementById('recitation-list');
+      listContainer.innerHTML = '';
+
+      const items = partialData[reciterKey] || [];
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'recitation-item';
+        div.innerText = item.title;
+        div.onclick = () => {
+          closePartialModal();
+          // الانتقال لسورة التلاوة وتشغيلها
+          document.getElementById('surah-select').value = item.surah;
+          onSurahChange();
+          playAudio(item.url);
+        };
+        listContainer.appendChild(div);
+      });
+
+      modal.style.display = 'flex';
+    }
+
+    function closePartialModal() {
+      document.getElementById('partial-modal').style.display = 'none';
+    }
+
+    function filterRecitations() {
+      const q = document.getElementById('search-box').value.toLowerCase();
+      document.querySelectorAll('.recitation-item').forEach(item => {
+        item.style.display = item.innerText.toLowerCase().includes(q) ? 'block' : 'none';
+      });
+    }
+
     function downloadCurrentSurahAudio() {
-      const reciter = document.getElementById('reciter-select').value;
+      const reciter = document.getElementById('full-reciter-select').value;
       const surahNum = document.getElementById('surah-select').value;
       const audioUrl = \`https://cdn.islamic.network/quran/audio-surah/128/\${reciter}/\${surahNum}.mp3\`;
 
       const a = document.createElement('a');
       a.href = audioUrl;
       a.target = '_blank';
-      a.download = \`Surah_\${surahNum}_\${reciter}.mp3\`;
+      a.download = \`Surah_\${surahNum}.mp3\`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     }
 
-    // بدء التطبيق عند الفتح
     initSurahSelect();
     loadPage(currentPage);
   </script>
